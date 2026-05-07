@@ -1,55 +1,45 @@
 <?php
-session_start();
-require_once "config/database_connection.php";
+include("../config/database_connection.php");
 
 $message = "";
 
-// merr token nga URL
 if (!isset($_GET['token'])) {
-    die("Token mungon.");
+    die("❌ Invalid token!");
 }
 
 $token = $_GET['token'];
 
-// kontrollo token në DB
-$sql = "SELECT * FROM users WHERE reset_token = ? AND token_expire > NOW()";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $token);
-$stmt->execute();
-$result = $stmt->get_result();
+$check_token = "
+SELECT * FROM users 
+WHERE reset_token='$token'
+AND token_expire > NOW()
+";
 
-if ($result->num_rows === 0) {
-    die("Token i pavlefshëm ose i skaduar.");
+$result = mysqli_query($conn, $check_token);
+
+if (mysqli_num_rows($result) == 0) {
+    die("❌ Token invalid ose ka skadu!");
 }
 
-$user = $result->fetch_assoc();
+if (isset($_POST['reset_password'])) {
 
-// kur useri submit-on password-in e ri
-if (isset($_POST['reset'])) {
+    $new_password = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
 
-    $newPassword = trim($_POST['password']);
-    $confirmPassword = trim($_POST['confirm_password']);
+    $update_password = "
+    UPDATE users
+    SET password='$new_password',
+        reset_token=NULL,
+        token_expire=NULL
+    WHERE reset_token='$token'
+    ";
 
-    if ($newPassword !== $confirmPassword) {
-        $message = "Password-at nuk përputhen.";
+    if (mysqli_query($conn, $update_password)) {
+
+        $message = "✅ Password u ndryshua me sukses!";
+
     } else {
 
-        // hash password
-        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-
-        // update password + fshij token
-        $update = "UPDATE users 
-                   SET password = ?, reset_token = NULL, token_expire = NULL 
-                   WHERE id = ?";
-
-        $stmt = $conn->prepare($update);
-        $stmt->bind_param("si", $hashedPassword, $user['id']);
-
-        if ($stmt->execute()) {
-            $message = "Password u ndryshua me sukses! <a href='../login.php'>Login</a>";
-        } else {
-            $message = "Gabim gjatë ndryshimit të password-it.";
-        }
+        $message = "❌ Error!";
     }
 }
 ?>
@@ -63,15 +53,24 @@ if (isset($_POST['reset'])) {
 
 <h2>Reset Password</h2>
 
-<form method="POST">
-    <input type="password" name="password" placeholder="New Password" required><br><br>
-    <input type="password" name="confirm_password" placeholder="Confirm Password" required><br><br>
-    <button type="submit" name="reset">Reset Password</button>
-</form>
+<p><?php echo $message; ?></p>
 
-<p style="color:green;">
-    <?php echo $message; ?>
-</p>
+<form method="POST">
+
+    <input 
+    type="password" 
+    name="new_password"
+    placeholder="New Password"
+    required
+    >
+
+    <br><br>
+
+    <button name="reset_password">
+        Reset Password
+    </button>
+
+</form>
 
 </body>
 </html>
