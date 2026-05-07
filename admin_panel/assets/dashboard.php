@@ -28,7 +28,6 @@ include("includes/admin_sidebar.php");
     </div>
 
 </div>
-
 <?php
-include("includes/admin_footer.php");
+echo "dashboard works";
 ?>

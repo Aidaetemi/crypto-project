@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "config/database_connection.php";
+require_once("../config/database_connection.php");
 
 $message = "";
 
@@ -38,9 +38,9 @@ if (isset($_POST['login'])) {
 
             // redirect sipas role
             if ($user['role'] == 'admin') {
-                header("Location: admin/dashboard.php");
+                header("Location: ../admin_panel/assets/dashboard.php");
             } else {
-                header("Location: user/dashboard.php");
+                header("Location: ../index.php");
             }
             exit();
         }
