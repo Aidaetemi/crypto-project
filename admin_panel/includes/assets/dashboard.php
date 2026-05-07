@@ -22,7 +22,7 @@ include("includes/admin_sidebar.php");
 
         <div style="background:#3b82f6;padding:20px;color:white;border-radius:10px;">
             <h2><?php echo $total_coins; ?></h2>
-            <p>Total Coins</p>
+            <p>Tota</p>
         </div>
 
     </div>
